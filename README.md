@@ -26,8 +26,11 @@ design engine:
   `docs/FILE_FORMAT_NOTES.md` for why this isn't a real `.DAP` file) and
   tracked in a small Recent Projects list.
 - **Open Network (.NTW)**: parses the real Lode Data file header (title,
-  design version, facility code, username) and shows it, along with any
-  embedded text found in the file body.
+  design version, facility code, username), and de-obfuscates the file
+  body (it's protected with a recoverable repeating-XOR pattern — see
+  `docs/FILE_FORMAT_NOTES.md`) before showing any embedded text found in
+  it. The actual schematic layout (nodes, branches, placed equipment)
+  inside that de-obfuscated body is not decoded yet.
 - **Spec file browsing**: `.CBL` (Cables) and `.ATV` (Actives) are parsed
   as real fixed-length record arrays — equipment names are extracted
   directly from the actual binary layout. `.PAR`, `.TAP`, `.CPR`, `.PRC`,
@@ -74,11 +77,20 @@ dotnet run --project src\HfcDesigner.App
 
 ## Roadmap (not built yet)
 
-1. Fully map the `.PAR`/`.TAP`/`.CPR` binary layouts (or obtain format docs
+1. **Decode the `.NTW` node/branch record layout.** The body is now
+   correctly de-obfuscated (see `docs/FILE_FORMAT_NOTES.md`), and a
+   repeating 261-byte record region is visible right after the header, but
+   we don't yet know what any of those bytes mean. The realistic way to
+   finish this is *differential* analysis: a brand-new empty network file,
+   plus the same network with one element added with a known footage/cable
+   type/house count, diffed byte-for-byte to see exactly what changed. If
+   you can generate a few such controlled samples from the real Design
+   Assistant, that would unblock this far faster than guessing.
+2. Fully map the `.PAR`/`.TAP`/`.CPR` binary layouts (or obtain format docs
    from Lode Data) so those spec files get the same structured record view
    `.CBL`/`.ATV` already have, with real column names (attenuation, gain,
    loss values, etc.) instead of raw bytes.
-2. Parse `.NTW` schematic data (nodes, branches, placed equipment) and
-   render a read-only network map.
-3. An actual Design/Entry/Powering editor with RF level calculation — a
+3. Once (1) is solved, render a read-only network map from the decoded
+   schematic data.
+4. An actual Design/Entry/Powering editor with RF level calculation — a
    substantial project in its own right.

@@ -139,13 +139,20 @@ public partial class MainWindow : Window
         NetworkTitleText.Text = string.IsNullOrEmpty(doc.Header.Title) ? "(untitled)" : doc.Header.Title;
 
         var version = doc.Header.DesignVersion is null ? "" : $" — {doc.Header.DesignVersion}";
+        var decryptionNote = doc.BodyWasDecrypted
+            ? $"Body de-obfuscated with a recovered {doc.DecryptionKeyPeriod}-byte repeating XOR key."
+            : "Body did not match the known repeating-XOR obfuscation pattern — showing raw bytes as-is.";
+
         NetworkDetailsText.Text =
             $"File: {doc.FilePath}\n" +
             $"Code: {doc.Header.Code}{version}\n" +
             $"User/Node: {doc.Header.UserName}\n" +
-            $"Size: {doc.FileSizeBytes:N0} bytes\n\n" +
-            "Schematic/canvas rendering is not implemented yet — this view shows the file header " +
-            "and any embedded text found in the body.";
+            $"Size: {doc.FileSizeBytes:N0} bytes\n" +
+            $"{decryptionNote}\n\n" +
+            "Full schematic parsing (nodes, branches, cable spans, placed equipment) is not " +
+            "implemented yet — the actual node/branch record layout hasn't been decoded. This view " +
+            "shows the file header and any embedded text found in the de-obfuscated body. See " +
+            "docs/FILE_FORMAT_NOTES.md for what's been found so far and what it would take to finish it.";
 
         NetworkTokensList.ItemsSource = doc.RawTokens
             .Select(t => new RawTokenRow(t.Offset, t.Text))

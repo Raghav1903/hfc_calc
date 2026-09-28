@@ -18,4 +18,14 @@ public sealed class SpecFileDocument
     public IReadOnlyList<SpecFileRecord> Records { get; init; } = Array.Empty<SpecFileRecord>();
     public IReadOnlyList<RawToken> RawTokens { get; init; } = Array.Empty<RawToken>();
     public long FileSizeBytes { get; init; }
+
+    /// <summary>
+    /// True for .NTW files whose body was de-obfuscated with a recovered
+    /// repeating-XOR key before <see cref="RawTokens"/> was extracted from
+    /// it — see <see cref="NtwBodyCipher"/>. Always false for other kinds.
+    /// </summary>
+    public bool BodyWasDecrypted { get; init; }
+
+    /// <summary>The recovered XOR key length in bytes, when <see cref="BodyWasDecrypted"/> is true.</summary>
+    public int? DecryptionKeyPeriod { get; init; }
 }

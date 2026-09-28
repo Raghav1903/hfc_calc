@@ -95,12 +95,65 @@ at all.
 
 ## `.NTW` (Network) files
 
-Same 512-byte header. The body is almost entirely non-textual (schematic
-node/branch geometry, presumably compressed or binary-packed), so a
-printable-string scan of a real network file turns up almost nothing
-useful. Full schematic parsing (nodes, branches, cable spans, actives,
-taps placed in the network) has not been attempted — see the Roadmap
-section of the root `README.md`.
+Same 512-byte header. The body looked like meaningless noise at first — a
+printable-string scan turned up nothing but garbage like `J~w8!` and
+`@v+FQ</q`. That's because **the body is obfuscated with a simple
+repeating-key XOR**, not because the underlying data is unreadable.
+
+### Finding the obfuscation
+
+Comparing a real 254 KB network file's body to itself shifted by increasing
+distances showed a very sharp, isolated peak: shifting by 100 bytes (and
+its harmonics 200, 300, ...) made ~94% of bytes match, while every other
+distance tested — including sub-periods of 100 like 50, 25, 20, 10, 5, and
+4 — matched only ~2-3% of the time (consistent with unrelated random
+bytes). That kind of gap is not something that happens by chance; it means
+the body repeats with a genuine 100-byte period.
+
+### Recovering the key without knowing it
+
+Because a Lode Data network file preallocates a large, mostly-empty
+structure (see below), the *plaintext* underneath is zero almost
+everywhere. That makes the repeating key recoverable with no prior
+knowledge: for each of the 100 key-byte positions, take the most common
+ciphertext byte seen at that position across the whole file (its
+statistical mode). Since plaintext is 0 there far more often than not,
+`0 XOR key[i] == key[i]`, so the mode is almost always the real key byte.
+Applying that recovered key turns the ~94%-repeating noise into a body
+that is **97% literal zero bytes**, with small, clearly-structured
+non-zero clusters — a very different (and far more promising-looking)
+picture than the raw ciphertext.
+
+This is implemented generically in `NtwBodyCipher`: it scans candidate key
+lengths from 8 to 256 bytes, picks whichever one shows a self-similarity
+ratio of at least 50% (comfortably above chance, comfortably below the
+~94% a real match shows), and recovers the key by per-position mode. If no
+period clears that bar, the body is passed through unchanged rather than
+"decrypting" into worse noise. This is obfuscation, not real
+cryptography — no secret is needed to reverse it, and it may well be a
+side effect of however the on-disk format is packed rather than an
+intentional protection measure.
+
+### What's visible after decoding, and what's still unknown
+
+Right after the header, the de-obfuscated body starts with several
+261-byte-apart entries, each holding about 19-20 bytes of real (non-zero)
+data followed by zero padding — for example the first one decodes to
+`1c cc ec 7d 05 03 0d 0d 34 bc 4c 0d c4 bc 94 ac 47 3c 7c`. These don't
+look like text (no recognizable ASCII), which fits the Design Assistant
+manual's description of per-node fields as small packed numbers (footage,
+house count, cable ID, level ID, coupler ID, branch pointers, etc.) rather
+than strings. Past the first handful of these evenly-spaced entries the
+non-zero clusters become sparser and irregularly spaced, which likely
+reflects the real (sparse) network topology rather than a fixed-size
+record array — but we don't have a way to confirm that without either
+official format documentation or a set of *controlled* sample files (e.g.
+a brand-new empty network, then the same network with one added element of
+a known footage/cable/house count, so a byte-diff shows exactly which
+bytes changed and what they mean). Full schematic parsing (nodes,
+branches, cable spans, actives/taps/couplers placed in the network) is not
+implemented — this is the next real step, see the Roadmap section of the
+root `README.md`.
 
 ## Why project settings aren't a real `.DAP` file
 

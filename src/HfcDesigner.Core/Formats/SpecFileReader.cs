@@ -41,15 +41,38 @@ public static class SpecFileReader
 
     private static SpecFileDocument BuildRaw(SpecFileKind kind, string path, LodeDataHeader header, byte[] data)
     {
-        var tokens = RawTokenScanner.Scan(data);
+        // .NTW bodies are obfuscated with a recoverable repeating XOR key
+        // (see NtwBodyCipher); everything else is scanned as-is.
+        if (kind != SpecFileKind.Network)
+        {
+            var tokens = RawTokenScanner.Scan(data);
+            return new SpecFileDocument
+            {
+                Kind = kind,
+                FilePath = path,
+                Header = header,
+                IsStructured = false,
+                RawTokens = tokens,
+                FileSizeBytes = data.LongLength,
+            };
+        }
+
+        var body = data[LodeDataHeader.HeaderLength..];
+        var decrypted = NtwBodyCipher.Decrypt(body);
+        var bodyTokens = RawTokenScanner.Scan(decrypted.Plaintext, startOffset: 0)
+            .Select(t => t with { Offset = t.Offset + LodeDataHeader.HeaderLength })
+            .ToList();
+
         return new SpecFileDocument
         {
             Kind = kind,
             FilePath = path,
             Header = header,
             IsStructured = false,
-            RawTokens = tokens,
+            RawTokens = bodyTokens,
             FileSizeBytes = data.LongLength,
+            BodyWasDecrypted = decrypted.WasDecrypted,
+            DecryptionKeyPeriod = decrypted.Period,
         };
     }
 }
