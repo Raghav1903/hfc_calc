@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>HfcDesigner.App</RootNamespace>
+    <AssemblyName>HfcDesigner</AssemblyName>
+    <LangVersion>12.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HfcDesigner.Core\HfcDesigner.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,93 @@
+<Window x:Class="HfcDesigner.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="HFC Network Designer" Height="760" Width="1200"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Project Settings..." Click="ProjectSettings_Click" />
+                <MenuItem Header="Open Project Settings _File..." Click="OpenProjectFile_Click" />
+                <MenuItem x:Name="RecentProjectsMenu" Header="Open _Recent" />
+                <Separator />
+                <MenuItem Header="_Open Network (.NTW)..." Click="OpenNetwork_Click" />
+                <Separator />
+                <MenuItem Header="_Reload Spec Files" Click="ReloadSpecFiles_Click" />
+                <Separator />
+                <MenuItem Header="E_xit" Click="Exit_Click" />
+            </MenuItem>
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText" Text="No project loaded." />
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0" Margin="8">
+                <TextBlock DockPanel.Dock="Top" Text="Spec Files" FontWeight="Bold" Margin="0,0,0,4" />
+                <ListView x:Name="SpecFileList" SelectionChanged="SpecFileList_SelectionChanged">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="File" Width="110" DisplayMemberBinding="{Binding KindDisplay}" />
+                            <GridViewColumn Header="Status" Width="140" DisplayMemberBinding="{Binding Status}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+
+            <TabControl x:Name="MainTabs" Grid.Column="1" Margin="8">
+                <TabItem Header="Network">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Vertical">
+                            <TextBlock x:Name="NetworkTitleText" FontWeight="Bold" FontSize="16" Text="No network file open." />
+                            <TextBlock x:Name="NetworkDetailsText" Margin="0,4,0,0" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <ListView x:Name="NetworkTokensList" Grid.Row="1" Margin="0,12,0,0">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Offset" Width="90" DisplayMemberBinding="{Binding OffsetHex}" />
+                                    <GridViewColumn Header="Text" Width="600" DisplayMemberBinding="{Binding Text}" />
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Records">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock x:Name="RecordsHeaderText" Grid.Row="0" FontWeight="Bold" FontSize="14"
+                                   Text="Select a spec file on the left to browse its contents." TextWrapping="Wrap" />
+
+                        <DataGrid x:Name="RecordsGrid" Grid.Row="1" Margin="0,8,0,0"
+                                  AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="50" />
+                                <DataGridTextColumn Header="Offset" Binding="{Binding OffsetHex}" Width="90" />
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="300" />
+                                <DataGridTextColumn Header="Length" Binding="{Binding Length}" Width="70" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>
