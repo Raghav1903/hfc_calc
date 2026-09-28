@@ -23,9 +23,18 @@ header:
 |---|---|---|
 | `0x000` | Title | Null-terminated ASCII, e.g. `"Lode Data Cables File"`. Identifies the file type independent of its extension. |
 | `0x01C`ish | `"Design x.xx"` | Present in some files (seen in `.CPR`, `.NTW`), absent in others. Found by scanning for the literal text `"Design "` within the first 0x80 bytes rather than assuming a fixed offset. |
-| `0x080` | Code | Null-terminated ASCII. A facility/system code in spec files; appears to hold a node/headend name in `.NTW` files. |
-| `0x090` | User name | Null-terminated ASCII. The Windows username of whoever last saved the file (e.g. `"mhornber"`), or the designer's initials in `.NTW` files. |
+| `0x080` | (reserved) | A single byte, `0x00` in every sample inspected. Purpose unknown — possibly a flag or a length-prefix byte that just happens to be unused/zero in our samples. |
+| `0x081` | Code | Null-terminated ASCII. A facility/system code in spec files; appears to hold a node/headend name in `.NTW` files. |
+| `0x090` | (reserved) | Same as `0x080`, always `0x00` in our samples. |
+| `0x091` | User name | Null-terminated ASCII. The Windows username of whoever last saved the file (e.g. `"mhornber"`), or the designer's initials in `.NTW` files. |
 | `0x200`+ | Body | Format-specific record data — see below. |
+
+An earlier version of this doc (and the code) had these two fields starting
+at `0x080`/`0x090` — an off-by-one from misreading a hex dump, where the
+label on a dump row is the offset of its *first* byte, not of the first
+*visible character* in that row. That byte is always `0x00`, so the bug
+made the Code and User/Node fields render blank in the app. Fixed after a
+user reported it from a real run.
 
 Implemented in `HfcDesigner.Core/Formats/LodeDataHeader.cs`.
 

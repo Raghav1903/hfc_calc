@@ -5,16 +5,20 @@ namespace HfcDesigner.Core.Formats;
 /// we've been able to inspect (.NTW, .PAR, .ATV, .TAP, .CPR, .CBL): a
 /// null-terminated title string at offset 0 (e.g. "Lode Data Cables File"),
 /// an optional "Design x.xx" version tag somewhere in the first 0x80 bytes,
-/// a facility/system code at offset 0x80, and a username/initials field
-/// (the last person to save the file) at offset 0x90. Everything after
-/// offset 0x200 is format-specific record data.
+/// a single reserved/unused byte at offset 0x80 followed by a
+/// null-terminated facility/system code starting at 0x81, and another
+/// reserved byte at 0x90 followed by a null-terminated username/initials
+/// field (the last person to save the file) starting at 0x91. Confirmed
+/// against real files: byte 0x80 and byte 0x90 are always 0x00, with the
+/// text starting one byte later in every sample inspected. Everything
+/// after offset 0x200 is format-specific record data.
 /// </summary>
 public sealed class LodeDataHeader
 {
     public const int HeaderLength = 0x200;
 
-    private const int CodeOffset = 0x80;
-    private const int UserNameOffset = 0x90;
+    private const int CodeOffset = 0x81;
+    private const int UserNameOffset = 0x91;
 
     public required string Title { get; init; }
     public string? DesignVersion { get; init; }

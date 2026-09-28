@@ -8,14 +8,16 @@ public class LodeDataHeaderTests
 {
     // These fixtures are hand-built to match the layout confirmed by inspecting
     // real Lode Data files (see docs/FILE_FORMAT_NOTES.md) — no proprietary
-    // customer data is embedded here.
+    // customer data is embedded here. Bytes 0x80 and 0x90 are left as the
+    // zero-initialized reserved byte real files have there; the code and
+    // username strings start one byte later, at 0x81 and 0x91.
     private static byte[] BuildHeader(string title, string? version, string code, string userName)
     {
         var buffer = new byte[LodeDataHeader.HeaderLength];
         WriteAscii(buffer, 0, title);
         if (version is not null) WriteAscii(buffer, 0x1c, "Design " + version);
-        WriteAscii(buffer, 0x80, code);
-        WriteAscii(buffer, 0x90, userName);
+        WriteAscii(buffer, 0x81, code);
+        WriteAscii(buffer, 0x91, userName);
         return buffer;
     }
 
